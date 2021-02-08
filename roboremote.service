@@ -1,0 +1,13 @@
+[Unit]
+Description=Starts server to enable remote control of arm.
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+ExecStart=/bin/bash /home/pi/robot-arm-socket-server/start.sh
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/home/pi
+Restart=on-failure
