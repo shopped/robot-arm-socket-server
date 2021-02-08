@@ -23,9 +23,9 @@ async def loop(websocket, path):
         data = rawdata.split(',')
         for i in range(0, 6):
             kit.servo[i].angle = int(data[i])
-        handlemoving(7)
+        handlemoving(data[6] == "True")
 
-moving = false
+moving = False
 def handlemoving(b):
     if (b != moving):
         moving = b
