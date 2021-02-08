@@ -36,9 +36,10 @@ def handlemoving(b):
 
 start_server = websockets.serve(loop, ip, 8765)
 
+white.on()
+
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
-white.on()
 
 async def blink(led, times, ontime, offtime, keepon):
     for t in times:
