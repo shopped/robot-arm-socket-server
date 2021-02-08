@@ -16,14 +16,33 @@ green = LED(23) # Socket Connected
 blue = LED(5) # Playback/Record indicator
 red = LED(13) # Movement Active
 
+are_we_loggin_it = True
+are_we_live = False
+
+async def blink(led, times, ontime, offtime, keepon):
+    for t in range(1, times):
+        led.on()
+        await asyncio.sleep(ontime)
+        led.off()
+        await asyncio.sleep(offtime)
+    if keepon:
+        led.on()
+
 async def loop(websocket, path):
     print("Connection established!")
-    asyncio.get_event_loop().run_until_complete(blink(green, 3, 0.3, 0.3, true))
-    async for rawdata in websocket:
-        data = rawdata.split(',')
-        for i in range(0, 6):
-            kit.servo[i].angle = int(data[i])
-        handlemoving(data[6] == "True")
+    asyncio.ensure_future(blink(green, 3, 0.2, 0.2, True))
+    try:
+        async for rawdata in websocket:
+            if (are_we_loggin_it):
+                print("DATA: " + rawdata)
+            if (are_we_live)
+                data = rawdata.split(',')
+                for i in range(0, 6):
+                    kit.servo[i].angle = int(data[i])
+                handlemoving(data[6] == "True")
+    except:
+        print("Connection Closed or some other error!")
+        green.off()
 
 moving = False
 def handlemoving(b):
@@ -40,12 +59,3 @@ white.on()
 
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
-
-async def blink(led, times, ontime, offtime, keepon):
-    for t in times:
-        led.on()
-        await asyncio.sleep(ontime)
-        led.off()
-        await asyncio.sleep(offtime)
-    if keepon:
-        led.on()
