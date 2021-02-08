@@ -18,7 +18,7 @@ red = LED(13) # Movement Active
 
 async def loop(websocket, path):
     print("Connection established!")
-    asyncio.run(blink(green, 3, 0.3, 0.3, true))
+    asyncio.get_event_loop().run_until_complete(blink(green, 3, 0.3, 0.3, true))
     async for rawdata in websocket:
         data = rawdata.split(',')
         for i in range(0, 6):
