@@ -5,7 +5,7 @@ import asyncio
 import socket
 import websockets
 
-ip = socket.gethostbyname(socket.gethostname())
+ip = socket.gethostbyname(socket.gethostname() + ".local")
 
 from adafruit_servokit import ServoKit
 kit = ServoKit(channels=16)
