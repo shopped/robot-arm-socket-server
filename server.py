@@ -56,7 +56,7 @@ def slovemove(final):
             if (position[i] < final[i]):
                 position[i] += 1
                 kit.servo[i].angle = position[i]
-            else if (position[i] > final[i]):
+            elif (position[i] > final[i]):
                 position[i] -= 1
                 kit.servo[i].angle = position[i]
             else:
@@ -83,7 +83,7 @@ async def loop(websocket, path):
         async for rawdata in websocket:
             if (are_we_loggin_it):
                 print("DATA: " + rawdata)
-            if (are_we_live)
+            if (are_we_live):
                 data = rawdata.split(',')
                 position = data[:6]
                 for i in range(0, 6):
@@ -105,7 +105,7 @@ def handlemoving(b):
         else:
             red.off()
 
-error = false
+error = False
 def handlerror(b):
     if (b != error):
         error = b
