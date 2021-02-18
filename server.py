@@ -46,7 +46,12 @@ def syncblink(led, times, ontime, offtime, keepon):
     if keepon:
         led.on()
 
-def slovemove(final):
+def move(final):
+    for i in range(0, 6):
+        position[i] = final[i]
+        kit.servo[i].angle = final[i]
+
+def slowmove(final):
     if (isinstance(position[0], int) == False):
         map(lambda x: int(x), position)
     count = 0
@@ -65,8 +70,8 @@ def slovemove(final):
 
 async def handlequit():
     syncblink(white, 5, 0.2, 0.2, True)
-    slovemove(restdatahalf)
-    slovemove(restdatafinal)
+    slowmove(restdatahalf)
+    slowmove(restdatafinal)
     syncblink(white, 3, 0.2, 0.2, True)
     resetleds()
 
@@ -114,8 +119,8 @@ def handlerror(b):
         else:
             yellow.off()
 
-slovemove(restdatahalf)
-slovemove(readydata)
+slowmove(restdatahalf)
+move(readydata)
 
 start_server = websockets.serve(loop, ip, 8765)
 
