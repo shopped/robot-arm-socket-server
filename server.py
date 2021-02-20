@@ -4,7 +4,7 @@ from gpiozero import LED
 import asyncio
 import socket
 import websockets
-from time import sleep
+import time
 
 from adafruit_servokit import ServoKit
 kit = ServoKit(channels=16)
@@ -40,9 +40,9 @@ async def blink(led, times, ontime, offtime, keepon):
 def syncblink(led, times, ontime, offtime, keepon):
     for t in range(1, times):
         led.on()
-        sleep(ontime)
+        time.sleep(ontime)
         led.off()
-        sleep(offtime)
+        time.sleep(offtime)
     if keepon:
         led.on()
 
@@ -66,7 +66,7 @@ def slowmove(final):
                 kit.servo[i].angle = position[i]
             else:
                 count += 1
-        sleep(0.1)
+        time.sleep(0.1)
 
 moving = False
 def handlemoving(b):
@@ -98,12 +98,26 @@ readydata = [90, 90, 90, 90, 90, 90]
 restdatahalf = [90, 90, 90, 90, 180, 90]
 restdatafinal = [90, 90, 140, 90, 180, 90]
 
+lasttime
+
+async def idletimeout():
+    while True:
+        await asyncio.sleep(2)
+        if (time.time() - lasttime > 6):
+            handlequit()
+            white.on()
+            break
+
 async def loop(websocket, path):
+    global lasttime
+    lasttime = time.time()
     print("Connection established!")
     asyncio.ensure_future(blink(green, 3, 0.2, 0.2, True))
+    asyncio.ensure_future(idletimeout())
     white.on()
     try:
         async for rawdata in websocket:
+            lasttime = time.time()
             if (are_we_loggin_it):
                 print("DATA: " + rawdata)
             if (are_we_live):
