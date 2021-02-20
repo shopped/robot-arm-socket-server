@@ -10,7 +10,7 @@ from adafruit_servokit import ServoKit
 kit = ServoKit(channels=16)
 
 white = LED(4) # Script Booted
-yellow = LED(18) # TODO error indicator
+yellow = LED(18) # error indicator
 green = LED(23) # Socket Connected
 blue = LED(5) # Playback/Record indicator
 red = LED(13) # Movement Active
@@ -99,14 +99,38 @@ restdatahalf = [90, 90, 90, 90, 180, 90]
 restdatafinal = [90, 90, 140, 90, 180, 90]
 
 lasttime
+blueon = False
 
 async def idletimeout():
     while True:
-        await asyncio.sleep(2)
+        await asyncio.sleep(1)
+        key = current_recording_key
+        blueon = not blueon
         if (time.time() - lasttime > 6):
             handlequit()
             white.on()
             break
+        elif (key == 1):
+            if (blueon):
+                blue.on()
+            else:
+                blue.off()
+        elif (key == 3):
+            if (blueon):
+                asyncio.ensure_future(blink(blue, 1, 0.1, 0.1, True))
+
+current_recording_key = 0
+async def handlerecording(key):
+    if (current_recording_key != key):
+        current_recording_key = key
+        if (key == 0):
+            blue.off()
+        #if (key == 1):
+            # blink until it won't blink
+        elif (key == 2):
+            blue.on()
+        #if (key == 3):
+            # solid with blink every second
 
 async def loop(websocket, path):
     global lasttime
@@ -127,8 +151,10 @@ async def loop(websocket, path):
                     kit.servo[i].angle = int(data[i])
                 handlemoving(data[6] == "True")
                 handleerror(data[7] == "True")
-                if (data[8] == "True"):
+                handlerecording(int(data[8]))
+                if (data[9] == "True"):
                     handlequit()
+                    
     except Exception as e:
         print("Connection Closed or some other error!")
         print(type(e))
