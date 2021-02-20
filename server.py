@@ -68,6 +68,24 @@ def slowmove(final):
                 count += 1
         sleep(0.1)
 
+moving = False
+def handlemoving(b):
+    if (b != moving):
+        moving = b
+        if (b):
+            red.on()
+        else:
+            red.off()
+
+error = False
+def handleerror(b):
+    if (b != error):
+        error = b
+        if (b):
+            yellow.on()
+        else:
+            yellow.off()
+
 async def handlequit():
     syncblink(white, 5, 0.2, 0.2, True)
     slowmove(restdatahalf)
@@ -97,27 +115,11 @@ async def loop(websocket, path):
                 handleerror(data[7] == "True")
                 if (data[8] == "True"):
                     handlequit()
-    except:
+    except Exception as e:
         print("Connection Closed or some other error!")
+        print(type(e))
+        print(e)
         green.off()
-
-moving = False
-def handlemoving(b):
-    if (b != moving):
-        moving = b
-        if (b):
-            red.on()
-        else:
-            red.off()
-
-error = False
-def handlerror(b):
-    if (b != error):
-        error = b
-        if (b):
-            yellow.on()
-        else:
-            yellow.off()
 
 slowmove(restdatahalf)
 move(readydata)
