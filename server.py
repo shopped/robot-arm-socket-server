@@ -10,7 +10,7 @@ from adafruit_servokit import ServoKit
 kit = ServoKit(channels=16)
 
 white = LED(4) # Script Booted
-yellow = LED(18) # error indicator
+yellow = LED(27) # error indicator
 green = LED(23) # Socket Connected
 blue = LED(5) # Playback/Record indicator
 red = LED(13) # Movement Active
