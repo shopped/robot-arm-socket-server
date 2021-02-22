@@ -70,6 +70,7 @@ def slowmove(final):
 
 moving = False
 def handlemoving(b):
+    global moving
     if (b != moving):
         moving = b
         if (b):
@@ -79,6 +80,7 @@ def handlemoving(b):
 
 error = False
 def handleerror(b):
+    global error
     if (b != error):
         error = b
         if (b):
@@ -86,7 +88,7 @@ def handleerror(b):
         else:
             yellow.off()
 
-async def handlequit():
+def handlequit():
     syncblink(white, 5, 0.2, 0.2, True)
     slowmove(restdatahalf)
     slowmove(restdatafinal)
@@ -98,13 +100,14 @@ readydata = [90, 90, 90, 90, 90, 90]
 restdatahalf = [90, 90, 90, 90, 180, 90]
 restdatafinal = [90, 90, 140, 90, 180, 90]
 
-lasttime
+lasttime = 0
 blueon = False
 
 async def idletimeout():
     while True:
         await asyncio.sleep(1)
         key = current_recording_key
+        global blueon
         blueon = not blueon
         if (time.time() - lasttime > 6):
             handlequit()
