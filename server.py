@@ -126,13 +126,17 @@ async def idletimeout():
                 asyncio.ensure_future(blink(blue, 1, 0.1, 0.1, True))
 
 current_recording_key = 0
+blue_blink_count = 20
 async def handlerecording(key):
+    if (key == 1):
+        blue_blink_count = blue_blink_count - 1
+        if (blue_blink_count == 0):
+            blue_blink_count = 20
+            asyncio.ensure_future(blink(blue, 1, 0.1, 0.1, False))
     if (current_recording_key != key):
         current_recording_key = key
         if (key == 0):
             blue.off()
-        if (key == 1):
-            asyncio.ensure_future(blink(blue, 3, 0.2, 0.2, True))
         elif (key == 2):
             blue.on()
 
