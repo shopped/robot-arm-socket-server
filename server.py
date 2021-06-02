@@ -29,7 +29,7 @@ ip = s.getsockname()[0]
 s.close()
 
 are_we_loggin_it = True
-are_we_live = False
+are_we_live = True
 
 async def blink(led, times, ontime, offtime, keepon):
     for t in range(1, times):
