@@ -131,12 +131,10 @@ async def handlerecording(key):
         current_recording_key = key
         if (key == 0):
             blue.off()
-        #if (key == 1):
-            # blink until it won't blink
+        if (key == 1):
+            asyncio.ensure_future(blink(blue, 3, 0.2, 0.2, True))
         elif (key == 2):
             blue.on()
-        #if (key == 3):
-            # solid with blink every second
 
 async def loop(websocket, path):
     global lasttime
