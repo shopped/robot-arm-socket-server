@@ -116,29 +116,28 @@ async def idletimeout():
             handlequit()
             white.on()
             break
-        elif (key == 1):
-            if (blueon):
-                blue.on()
-            else:
-                blue.off()
-        elif (key == 3):
-            if (blueon):
-                asyncio.ensure_future(blink(blue, 1, 0.1, 0.1, True))
+        #elif (key == 1):
+        #    if (blueon):
+        #        blue.on()
+        #    else:
+        #        blue.off()
+        # blinking logic is cool but we really don't need it
 
 current_recording_key = 0
 blue_blink_count = 20
-async def handlerecording(key):
-    if (key == 1):
-        blue_blink_count = blue_blink_count - 1
-        if (blue_blink_count == 0):
-            blue_blink_count = 20
-            asyncio.ensure_future(blink(blue, 1, 0.1, 0.1, False))
+def handlerecording(key):
+    global current_recording_key
     if (current_recording_key != key):
         current_recording_key = key
         if (key == 0):
             blue.off()
+            yellow.off()
+        elif (key == 1):
+            yellow.on()
+            blue.off()
         elif (key == 2):
             blue.on()
+            yellow.off()
 
 async def loop(websocket, path):
     global lasttime
