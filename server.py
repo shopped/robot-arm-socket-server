@@ -5,23 +5,70 @@ import asyncio
 import socket
 import websockets
 import time
+import board
+import neopixel
 
 from adafruit_servokit import ServoKit
 kit = ServoKit(channels=16)
 
-white = LED(4) # Script Booted
-yellow = LED(27) # error indicator
-green = LED(23) # Socket Connected
-blue = LED(5) # Playback/Record indicator
-red = LED(13) # Movement Active
+pixel_pin = board.D21
+num_pixels = 16
+ORDER = neopixel.GRB
 
-def resetleds():
-    white.off()
-    yellow.off()
-    green.off()
-    blue.off()
-    red.off()
-resetleds()
+pixels = neopixel.NeoPixel(pixel_pin, num_pixels, pixel_order=ORDER)
+
+control_pixels = [0, 1, 6, 7, 8, 9, 14, 15]
+action_pixels = [2, 10, 3, 11, 4, 12, 5, 13]
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+CLEAR = (0,0,0)
+CYAN = (0,255,255)
+MAGENTA = (255,0,255)
+YELLOW (255,255,0)
+
+def set_clear():
+    pixels.fill(CLEAR)
+
+def set_free():
+    for i in control_pixels:
+        pixels[i] = WHITE
+
+def set_attached(right):
+    for i in control_pixels:
+        if right:
+            pixels[i] = RED
+        else:
+            pixels[i] = GREEN
+
+def set_active():
+    for i in action_pixels:
+        pixels[i] = WHITE
+
+def set_inactive():
+    for i in action_pixels:
+        pixels[i] = CLEAR
+
+def set_recording():
+    for i in action_pixels:
+        pixels[i] = BLUE
+
+def set_playback(quarter): #(0/1/2/3)
+    for index, address in action_pixels:
+        if (quarter * 2 == index) or (quarter * 2 - 1 == index):
+            pixels[address] = BLUE
+        else:
+            pixels[address] = CLEAR
+
+def set_looping(quarter):
+    for index, address in action_pixels:
+        if (quarter * 2 == index) or (quarter * 2 - 1 == index):
+            pixels[address] = BLUE
+        else:
+            pixels[address] = WHITE
+
+set_clear()
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.connect(("8.8.8.8", 80))
@@ -29,25 +76,8 @@ ip = s.getsockname()[0]
 s.close()
 
 are_we_loggin_it = True
-are_we_live = True
+are_we_live = False
 
-async def blink(led, times, ontime, offtime, keepon):
-    for t in range(1, times):
-        led.on()
-        await asyncio.sleep(ontime)
-        led.off()
-        await asyncio.sleep(offtime)
-    if keepon:
-        led.on()
-
-def syncblink(led, times, ontime, offtime, keepon):
-    for t in range(1, times):
-        led.on()
-        time.sleep(ontime)
-        led.off()
-        time.sleep(offtime)
-    if keepon:
-        led.on()
 
 def move(final):
     for i in range(0, 6):
@@ -72,108 +102,76 @@ def slowmove(final):
         time.sleep(0.1)
 
 moving = False
-def handlemoving(b):
+def handle_moving(b):
     global moving
     if (b != moving):
         moving = b
         if (b):
-            red.on()
+            set_active()
         else:
-            red.off()
+            set_inactive()
 
-error = False
-def handleerror(b):
-    global error
-    if (b != error):
-        error = b
-        if (b):
-            yellow.on()
-        else:
-            yellow.off()
-
-def handlequit():
-    syncblink(white, 5, 0.2, 0.2, True)
+def handle_quit():
+    pixels.fill(PURPLE)
     slowmove(restdatahalf)
     slowmove(restdatafinal)
-    syncblink(white, 3, 0.2, 0.2, True)
-    resetleds()
+    set_clear()
+
+def handle_recording(key): #recording, playback, loop
+    global last_quarter
+    if (key == -1): # not doing anything
+        return
+    if (key == -2): # recording
+        set_recording()
+    elif (key == -3): # stop recording
+        set_active()
+    elif (key == -4): # stop playback
+        set_inactive()
+    elif (key == 4): # non looping recoding done playing
+        set_inactive()
+    elif (key >= 10): # looping
+        set_looping(key - 10)
+    else: # playing once
+        set_playback(key)
 
 position = [90, 90, 140, 90, 180, 90]
 readydata = [90, 90, 90, 90, 90, 90]
 restdatahalf = [90, 90, 90, 90, 180, 90]
 restdatafinal = [90, 90, 140, 90, 180, 90]
 
-lasttime = 0
-blueon = False
-
-async def idletimeout():
-    while True:
-        await asyncio.sleep(1)
-        key = current_recording_key
-        global blueon
-        blueon = not blueon
-        if (time.time() - lasttime > 6):
-            handlequit()
-            white.on()
-            break
-        #elif (key == 1):
-        #    if (blueon):
-        #        blue.on()
-        #    else:
-        #        blue.off()
-        # blinking logic is cool but we really don't need it
-
-current_recording_key = 0
-blue_blink_count = 20
-def handlerecording(key):
-    global current_recording_key
-    if (current_recording_key != key):
-        current_recording_key = key
-        if (key == 0):
-            blue.off()
-            yellow.off()
-        elif (key == 1):
-            yellow.on()
-            blue.off()
-        elif (key == 2):
-            blue.on()
-            yellow.off()
-
 async def loop(websocket, path):
-    global lasttime
-    lasttime = time.time()
     print("Connection established!")
-    asyncio.ensure_future(blink(green, 3, 0.2, 0.2, True))
-    asyncio.ensure_future(idletimeout())
-    white.on()
+    set_clear()
+    set_free()
     try:
         async for rawdata in websocket:
-            lasttime = time.time()
             if (are_we_loggin_it):
                 print("DATA: " + rawdata)
+
             if (are_we_live):
                 data = rawdata.split(',')
                 position = data[:6]
                 for i in range(0, 6):
                     kit.servo[i].angle = int(data[i])
-                handlemoving(data[6] == "True")
-                handleerror(data[7] == "True")
-                handlerecording(int(data[8]))
+                handle_moving(data[6] == "True")
+                # Taking out error handling, which is out of bounds
+                handle_recording(int(data[8]))
                 if (data[9] == "True"):
-                    handlequit()
+                    handle_quit()
                     
     except Exception as e:
         print("Connection Closed or some other error!")
         print(type(e))
         print(e)
-        green.off()
+        set_clear()
+        set_free()
+        
 
+pixels.fill(CYAN)
 slowmove(restdatahalf)
 move(readydata)
 
 start_server = websockets.serve(loop, ip, 8765)
-
-white.on()
 
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
