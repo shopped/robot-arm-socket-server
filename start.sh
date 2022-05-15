@@ -1,1 +1,1 @@
-python3 /home/pi/robot-arm-socket-server/server.py
+python3 /home/million/robot-arm-socket-server/server.py

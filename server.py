@@ -6,6 +6,7 @@ import time
 import board
 import neopixel
 import config.default as config
+import signal
 
 from adafruit_servokit import ServoKit
 kit = ServoKit(channels=16)
@@ -26,7 +27,7 @@ BLUE = (0, 0, 255)
 CLEAR = (0,0,0)
 CYAN = (0,255,255)
 MAGENTA = (255,0,255)
-YELLOW (255,255,0)
+YELLOW = (255,255,0)
 
 def set_clear():
     pixels.fill(CLEAR)
@@ -82,8 +83,11 @@ def move(final):
         kit.servo[i].angle = final[i]
 
 def slowmove(final):
+    global current_position
     if (isinstance(current_position[0], int) == False):
-        map(lambda x: int(x), current_position)
+        current_position = list(map(lambda x: int(x), current_position))
+    if (isinstance(final[0], int) == False):
+        final = list(map(lambda x: int(x), final))
     count = 0
     while (count < 6):
         count = 0
@@ -168,7 +172,17 @@ pixels.fill(CYAN)
 slowmove(halfway_resting_position)
 move(ready_position)
 
+def signal_handler(sig, frame):
+    handle_quit()
+    sys.exit()
+
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
+
 start_server = websockets.serve(loop, hostname, 8765)
+
+if (are_we_loggin_it):
+    print("Server Ready")
 
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
