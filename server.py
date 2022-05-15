@@ -5,8 +5,10 @@ import websockets
 import time
 import board
 import neopixel
-import config.default as config
 import signal
+import sys
+
+import config.default as config
 
 from adafruit_servokit import ServoKit
 kit = ServoKit(channels=16)
@@ -103,7 +105,7 @@ def slowmove(final):
         time.sleep(0.1)
 
 def handle_quit():
-    pixels.fill(PURPLE)
+    pixels.fill(MAGENTA)
     slowmove(halfway_resting_position)
     slowmove(config.resting)
     set_clear()
