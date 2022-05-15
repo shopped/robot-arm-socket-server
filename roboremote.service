@@ -5,9 +5,9 @@ Description=Starts server to enable remote control of arm.
 WantedBy=multi-user.target
 
 [Service]
-ExecStart=/bin/bash /home/pi/robot-arm-socket-server/start.sh
+ExecStart=/bin/bash /home/million/robot-arm-socket-server/start.sh
 Type=simple
 User=root
 Group=root
-WorkingDirectory=/home/pi
+WorkingDirectory=/home/million
 Restart=on-failure

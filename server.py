@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-from gpiozero import LED
-
 import asyncio
 import socket
 import websockets
 import time
 import board
 import neopixel
+import config.default as config
 
 from adafruit_servokit import ServoKit
 kit = ServoKit(channels=16)
+kit.servo[2].set_pulse_width_range(500, 2500)
 
 pixel_pin = board.D21
 num_pixels = 16
@@ -70,10 +70,7 @@ def set_looping(quarter):
 
 set_clear()
 
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-s.connect(("8.8.8.8", 80))
-ip = s.getsockname()[0]
-s.close()
+hostname = socket.gethostname() + '.local'
 
 are_we_loggin_it = True
 are_we_live = False
@@ -81,63 +78,36 @@ are_we_live = False
 
 def move(final):
     for i in range(0, 6):
-        position[i] = final[i]
+        current_position[i] = final[i]
         kit.servo[i].angle = final[i]
 
 def slowmove(final):
-    if (isinstance(position[0], int) == False):
-        map(lambda x: int(x), position)
+    if (isinstance(current_position[0], int) == False):
+        map(lambda x: int(x), current_position)
     count = 0
     while (count < 6):
         count = 0
         for i in range(0, 6):
-            if (position[i] < final[i]):
-                position[i] += 1
-                kit.servo[i].angle = position[i]
-            elif (position[i] > final[i]):
-                position[i] -= 1
-                kit.servo[i].angle = position[i]
+            if (current_position[i] < final[i]):
+                current_position[i] += 1
+                kit.servo[i].angle = current_position[i]
+            elif (current_position[i] > final[i]):
+                current_position[i] -= 1
+                kit.servo[i].angle = current_position[i]
             else:
                 count += 1
         time.sleep(0.1)
 
-moving = False
-def handle_moving(b):
-    global moving
-    if (b != moving):
-        moving = b
-        if (b):
-            set_active()
-        else:
-            set_inactive()
-
 def handle_quit():
     pixels.fill(PURPLE)
-    slowmove(restdatahalf)
-    slowmove(restdatafinal)
+    slowmove(halfway_resting_position)
+    slowmove(config.resting)
     set_clear()
 
-def handle_recording(key): #recording, playback, loop
-    global last_quarter
-    if (key == -1): # not doing anything
-        return
-    if (key == -2): # recording
-        set_recording()
-    elif (key == -3): # stop recording
-        set_active()
-    elif (key == -4): # stop playback
-        set_inactive()
-    elif (key == 4): # non looping recoding done playing
-        set_inactive()
-    elif (key >= 10): # looping
-        set_looping(key - 10)
-    else: # playing once
-        set_playback(key)
-
-position = [90, 90, 140, 90, 180, 90]
-readydata = [90, 90, 90, 90, 90, 90]
-restdatahalf = [90, 90, 90, 90, 180, 90]
-restdatafinal = [90, 90, 140, 90, 180, 90]
+current_position = config.resting
+ready_position = [90, 90, 90, 90, 90, config.max[5] - config.min[5]]
+halfway_resting_position = [(x[0] + (x[1] - x[0]) / 2) for x in zip(ready_position, config.resting)]
+last_data = list("x" for x in range(4))
 
 async def loop(websocket, path):
     print("Connection established!")
@@ -147,17 +117,44 @@ async def loop(websocket, path):
         async for rawdata in websocket:
             if (are_we_loggin_it):
                 print("DATA: " + rawdata)
-
             if (are_we_live):
                 data = rawdata.split(',')
-                position = data[:6]
+                current_position = data[:6]
                 for i in range(0, 6):
                     kit.servo[i].angle = int(data[i])
-                handle_moving(data[6] == "True")
-                # Taking out error handling, which is out of bounds
-                handle_recording(int(data[8]))
-                if (data[9] == "True"):
+
+                if (data[10] == "shutdown"):
                     handle_quit()
+                else:
+                    global last_data
+                    new_data = data[6:10]
+                    if new_data[0] != last_data[0]:
+                        if new_data[0] == "free":
+                            set_free()
+                        elif new_data[0] == "left":
+                            set_attached(False)
+                        elif new_data[0] == "right":
+                            set_attached(True)
+                    elif new_data[1] != last_data[1]:
+                        if new_data[1] == "ready":
+                            set_inactive()
+                        elif new_data[1] == "active":
+                            set_active()
+                        elif new_data[1] == "recording":
+                            set_recording()
+                    elif new_data[2] != last_data[2]:
+                        if new_data[2] == "idle":
+                            set_inactive()
+                        elif new_data[2] == "playback":
+                            set_playback(0)
+                        elif new_data[2] == "looping":
+                            set_looping(0)
+                    elif new_data[3] != last_data[3]:
+                        if (new_data[2] == "playback"):
+                            set_playback(new_data[3])
+                        elif (new_data[2] == "looping"):
+                            set_looping(new_data[3])
+                    last_data = new_data
                     
     except Exception as e:
         print("Connection Closed or some other error!")
@@ -168,10 +165,10 @@ async def loop(websocket, path):
         
 
 pixels.fill(CYAN)
-slowmove(restdatahalf)
-move(readydata)
+slowmove(halfway_resting_position)
+move(ready_position)
 
-start_server = websockets.serve(loop, ip, 8765)
+start_server = websockets.serve(loop, hostname, 8765)
 
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
