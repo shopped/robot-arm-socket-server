@@ -1,10 +1,10 @@
 #!/usr/bin/env python
+from gpiozero import LED
+
 import asyncio
 import socket
 import websockets
 import time
-import board
-import neopixel
 import signal
 import sys
 
@@ -14,62 +14,48 @@ from adafruit_servokit import ServoKit
 kit = ServoKit(channels=16)
 kit.servo[2].set_pulse_width_range(500, 2500)
 
-pixel_pin = board.D21
-num_pixels = 16
-ORDER = neopixel.GRB
+white = LED(4) # Script Booted
+yellow = LED(27) # error indicator
+green = LED(23) # Socket Connected
+blue = LED(5) # Playback/Record indicator
+red = LED(13) # Movement Active
 
-pixels = neopixel.NeoPixel(pixel_pin, num_pixels, pixel_order=ORDER)
-
-control_pixels = [0, 1, 6, 7, 8, 9, 14, 15]
-action_pixels = [2, 10, 3, 11, 4, 12, 5, 13]
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 0, 255)
-CLEAR = (0,0,0)
-CYAN = (0,255,255)
-MAGENTA = (255,0,255)
-YELLOW = (255,255,0)
+def set_all():
+    white.on()
+    yellow.on()
+    green.on()
+    blue.on()
+    red.on()
 
 def set_clear():
-    pixels.fill(CLEAR)
+    white.off()
+    yellow.off()
+    green.off()
+    blue.off()
+    red.off()
+set_clear()
 
 def set_free():
-    for i in control_pixels:
-        pixels[i] = WHITE
+    white.on()
+    green.off()
 
 def set_attached(right):
-    for i in control_pixels:
-        if right:
-            pixels[i] = RED
-        else:
-            pixels[i] = GREEN
+    green.on()
 
 def set_active():
-    for i in action_pixels:
-        pixels[i] = WHITE
+    red.on()
 
 def set_inactive():
-    for i in action_pixels:
-        pixels[i] = CLEAR
+    red.off()
 
 def set_recording():
-    for i in action_pixels:
-        pixels[i] = BLUE
+    blue.on()
 
 def set_playback(quarter): #(0/1/2/3)
-    for index, address in action_pixels:
-        if (quarter * 2 == index) or (quarter * 2 - 1 == index):
-            pixels[address] = BLUE
-        else:
-            pixels[address] = CLEAR
+    blue.on()
 
 def set_looping(quarter):
-    for index, address in action_pixels:
-        if (quarter * 2 == index) or (quarter * 2 - 1 == index):
-            pixels[address] = BLUE
-        else:
-            pixels[address] = WHITE
+    blue.on()
 
 set_clear()
 
@@ -105,7 +91,7 @@ def slowmove(final):
         time.sleep(0.1)
 
 def handle_quit():
-    pixels.fill(MAGENTA)
+    set_all()
     slowmove(halfway_resting_position)
     slowmove(config.resting)
     set_clear()
@@ -170,9 +156,9 @@ async def loop(websocket, path):
         set_free()
         
 
-pixels.fill(YELLOW)
+set_all()
 slowmove(halfway_resting_position)
-pixels.fill(CYAN)
+set_clear()
 
 def signal_handler(sig, frame):
     handle_quit()
