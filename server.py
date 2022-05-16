@@ -110,7 +110,7 @@ def handle_quit():
     slowmove(config.resting)
     set_clear()
 
-current_position = config.resting
+current_position = config.resting.copy()
 ready_position = [90, 90, 90, 90, 90, config.max[5] - config.min[5]]
 halfway_resting_position = [(x[0] + (x[1] - x[0]) / 2) for x in zip(ready_position, config.resting)]
 last_data = list("x" for x in range(4))
@@ -170,9 +170,9 @@ async def loop(websocket, path):
         set_free()
         
 
-pixels.fill(CYAN)
+pixels.fill(YELLOW)
 slowmove(halfway_resting_position)
-move(ready_position)
+pixels.fill(CYAN)
 
 def signal_handler(sig, frame):
     handle_quit()
