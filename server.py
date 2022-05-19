@@ -94,6 +94,8 @@ def handle_quit():
     set_all()
     slowmove(halfway_resting_position)
     slowmove(config.resting)
+    for i in range(6):
+        kit.servo[i].angle = None
     set_clear()
 
 current_position = config.resting.copy()
@@ -113,7 +115,7 @@ async def loop(websocket, path):
                 data = rawdata.split(',')
                 current_position = data[:6]
                 for i in range(0, 6):
-                    kit.servo[i].angle = int(data[i])
+                    kit.servo[i].angle = config.lerp(i, int(data[i]))
 
                 if (data[10] == "shutdown"):
                     handle_quit()
