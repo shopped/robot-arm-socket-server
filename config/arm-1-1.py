@@ -1,6 +1,6 @@
-min = [0, 0, 0, 0, 0, 0]
+min = [0, 0, 90, 0, 0, 0]
 max = [180, 180, 180, 180, 180, 45]
-reverse = [False, False, False, False, True, False]
+reverse = [False, True, False, True, True, False]
 resting = [70,160,175,0,90,30]
 
 def lerp(index, value):
