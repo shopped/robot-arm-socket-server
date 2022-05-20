@@ -62,7 +62,7 @@ set_clear()
 hostname = socket.gethostname() + '.local'
 
 are_we_loggin_it = True
-are_we_live = False
+are_we_live = True
 
 
 def move(final):
