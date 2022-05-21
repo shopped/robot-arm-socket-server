@@ -128,8 +128,6 @@ async def loop(websocket, path):
             if (are_we_live):
                 data = rawdata.split(',')
                 current_position = data[:6]
-                for i in range(0, 6):
-                    kit.servo[i].angle = config.lerp(i, int(data[i]))
 
                 if (data[10] == "shutdown"):
                     handle_quit()
@@ -144,7 +142,7 @@ async def loop(websocket, path):
                         elif new_data[0] == "right":
                             set_attached(True)
                     elif new_data[1] != last_data[1]:
-                        if new_data[1] == "ready":
+                        if new_data[1] == "idle":
                             set_inactive()
                         elif new_data[1] == "active":
                             set_active()
@@ -162,6 +160,9 @@ async def loop(websocket, path):
                             set_playback(new_data[3])
                         elif (new_data[2] == "looping"):
                             set_looping(new_data[3])
+                    if (new_data[1] != "idle" or new_data[2] != "idle"):
+                        for i in range(0, 6):
+                            kit.servo[i].angle = config.lerp(i, int(data[i]))
                     last_data = new_data
                     
     except Exception as e:
