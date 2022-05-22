@@ -58,14 +58,14 @@ def set_recording():
         pixels[i] = BLUE
 
 def set_playback(quarter): #(0/1/2/3)
-    for index, address in action_pixels:
+    for index, address in enumerate(action_pixels):
         if (quarter * 2 == index) or (quarter * 2 - 1 == index):
             pixels[address] = BLUE
         else:
             pixels[address] = CLEAR
 
 def set_looping(quarter):
-    for index, address in action_pixels:
+    for index, address in enumerate(action_pixels):
         if (quarter * 2 == index) or (quarter * 2 - 1 == index):
             pixels[address] = BLUE
         else:
