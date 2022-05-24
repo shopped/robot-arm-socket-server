@@ -12,7 +12,7 @@ import config.default as config
 
 from adafruit_servokit import ServoKit
 kit = ServoKit(channels=16)
-kit.servo[2].set_pulse_width_range(500, 2500)
+config.set_pwm_ranges(kit)
 
 pixel_pin = board.D21
 num_pixels = 16
@@ -113,7 +113,7 @@ def handle_quit():
     set_clear()
 
 current_position = config.resting.copy()
-ready_position = [90, 90, 90, 90, 90, config.max[5] - config.min[5]]
+ready_position = [90, 90, 90, 90, 90, config.out_max[5] - config.out_min[5]]
 halfway_resting_position = [(x[0] + (x[1] - x[0]) / 2) for x in zip(ready_position, config.resting)]
 last_data = list("x" for x in range(4))
 
