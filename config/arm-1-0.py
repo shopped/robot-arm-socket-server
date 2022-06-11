@@ -3,7 +3,7 @@ in_max = [180, 110, 180, 180, 180, 180]
 out_min = [0, 0, 90, 0, 0, 90]
 out_max = [180, 120, 180, 180, 180, 180]
 reverse = [False, True, False, True, True, False]
-resting = [105,30,175,0,110,150]
+resting = [90, 70, 150, 10, 110, 150]
 
 def set_pwm_ranges(kit):
     kit.servo[1].set_pulse_width_range(500, 2500)

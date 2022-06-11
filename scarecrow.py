@@ -4,6 +4,7 @@ import signal
 import subprocess
 import config.default as config
 from adafruit_servokit import ServoKit
+jump = [90,30,100,150,90,90]
 
 detect_motion = None
 kit = ServoKit(channels=16)
@@ -44,8 +45,18 @@ while True:
         time.sleep(1)
     time.sleep(2)
     for i in range(6):
-        kit.servo[i].angle =  90
-        current_position[i] = 90
-    time.sleep(10)
+        kit.servo[i].angle = jump[i]
+        current_position[i] = jump[i]
+    time.sleep(.5)
+    kit.servo[0].angle = 45
+    time.sleep(1)
+    kit.servo[0].angle = 135
+    time.sleep(1)
+    kit.servo[0].angle = 45
+    time.sleep(1)
+    kit.servo[0].angle = 135
+    time.sleep(1)
+    kit.servo[0].angle = 90
+    time.sleep(5)
     slow_move(config.resting)
     detect_motion = subprocess.Popen("/home/million/robot-arm-socket-server/build/detect_motion")
