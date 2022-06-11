@@ -1,8 +1,8 @@
 in_min = [0, 45, 0, 0, 0, 0]
 in_max = [180, 110, 180, 180, 180, 180]
-out_min = [0, 0, 90, 0, 0, 0]
-out_max = [180, 120, 180, 180, 180, 155]
-reverse = [False, False, False, True, True, False]
+out_min = [0, 0, 90, 0, 0, 90]
+out_max = [180, 120, 180, 180, 180, 180]
+reverse = [False, True, False, True, True, False]
 resting = [105,30,175,0,110,150]
 
 def set_pwm_ranges(kit):
